@@ -574,4 +574,21 @@ class Parser {
     };
   }
 
+  private static function restl1<A>(parser : ParseObject<A>, op : ParseObject<A->A->A>, x : A) : ParseObject<A> {
+    return flatMap(op, function(f) {
+      return flatMap(parser, function(y) {
+        return restl1(parser, op, f(x, y));
+      });
+    }).or(x.succeed());
+  }
+
+  /**
+    A `Parser` for an operand followed by one or more operands separated by
+    `operator`s. This parser can for example be used to eliminate left
+    recursion which typically occurs in expression grammars.
+  **/
+  public static function chainl1<A>(parser : ParseObject<A>, op : ParseObject<A->A->A>) : ParseObject<A> {
+    return flatMap(parser, function(x) return restl1(parser, op, x));
+  }
+
 }
